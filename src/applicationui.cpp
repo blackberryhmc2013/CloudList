@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2011-2013 BlackBerry Limited.
+/* Copyright (c) 2013-2014 BlackBerry Limited.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +13,17 @@
  * limitations under the License.
  */
 
+
 #include "applicationui.hpp"
 
 #include <bb/cascades/Application>
 #include <bb/cascades/QmlDocument>
 #include <bb/cascades/AbstractPane>
 #include <bb/cascades/LocaleHandler>
-#include "cloudList/CloudList.h"
+#include <bb/cascades/Container>
+#include <bb/cascades/Button>
+#include <bb/cascades/TextField>
+#include <unistd.h>
 
 using namespace bb::cascades;
 
@@ -47,28 +50,58 @@ ApplicationUI::ApplicationUI(bb::cascades::Application *app) :
 
     // Create root object for the UI
     AbstractPane *root = qml->createRootObject<AbstractPane>();
-    CloudList<QString>* clTest = new CloudList<QString>("test_list");
 
     // Set created root object as the application scene
     app->setScene(root);
-    qDebug() << clTest;
-    clTest->add("hello!");
+    //test_list = new MediaDB<std::string>();
+
+    Container* cont = (Container*) root->children().at(0);
+    // TODO... findChild by id didn't seem to work
+    list = (ListView*) cont->children().at(0);
+    txt = (TextField*) cont->children().at(1);
+    if(list) {
+    	data_list = new bb::cascades::QListDataModel<QVariantMap>();
+    	list->setDataModel(data_list);
+    } else {
+    	qDebug() << "no list found?";
+    }
+
+    cltest = new CloudList<QString>("TemplateTest");
+    qml -> setContextProperty("myApp", this);
+
+    connect(txt->input(), SIGNAL(submitted(bb::cascades::AbstractTextControl*)), this, SLOT(submitData()) );
+    connect(cltest, SIGNAL(newObject(int)) , this, SLOT(onItemAdded(int)));
+    connect(cltest, SIGNAL(deletedObject(int)) , this, SLOT(onItemDeleted(int)));
+    connect(cltest, SIGNAL(updatedObject(int)), this, SLOT(onItemChange(int)) );
 }
 
 void ApplicationUI::onItemAdded(int index)
 {
-	// Occurs when a new item has been added to the list
-	// cltest->at(index);  Access the added element
+	QVariantMap item;
+	item["updateTime"] = cltest->lastUpdate(index).toString("MMMM d");
+	item["body"] = cltest->at(index);
+	item["id"] = cltest->lastUpdate(index).toString("h:mm:ss ap");
+	data_list -> append(item);
+}
+
+void ApplicationUI::deleteItem(int index)
+{
+	cltest->remove(index);
 }
 
 void ApplicationUI::onItemDeleted(int index)
 {
-	// When the item previously at index index has been deleted
+	data_list -> removeAt(index);
+}
+
+void ApplicationUI::submitData() {
+	cltest -> add(txt->text());
+	txt->resetText();
 }
 
 void ApplicationUI::onItemChange(int index)
 {
-	// When the item at index index has been changed
+	//data_list.replace(index, cltest->at(index) );
 }
 
 void ApplicationUI::onSystemLanguageChanged()
@@ -76,7 +109,7 @@ void ApplicationUI::onSystemLanguageChanged()
     QCoreApplication::instance()->removeTranslator(m_pTranslator);
     // Initiate, load and install the application translation files.
     QString locale_string = QLocale().name();
-    QString file_name = QString("CloudListTemplate_%1").arg(locale_string);
+    QString file_name = QString("cloudList_%1").arg(locale_string);
     if (m_pTranslator->load(file_name, "app/native/qm")) {
         QCoreApplication::instance()->installTranslator(m_pTranslator);
     }

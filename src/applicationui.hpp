@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2011-2013 BlackBerry Limited.
+/* Copyright (c) 2013-2014 BlackBerry Limited.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,10 @@
 #define ApplicationUI_HPP_
 
 #include <QObject>
+#include "cloudList/CloudList.h"
+#include <bb/cascades/ListView>
+#include <bb/cascades/TextField>
+#include <bb/cascades/QListDataModel>
 
 namespace bb
 {
@@ -42,12 +45,21 @@ class ApplicationUI : public QObject
 public:
     ApplicationUI(bb::cascades::Application *app);
     virtual ~ApplicationUI() { }
+    Q_INVOKABLE void deleteItem(int index);
+
 private slots:
     void onSystemLanguageChanged();
     void onItemAdded(int index);
     void onItemChange(int index);
     void onItemDeleted(int index);
+public slots:
+    void submitData();
 private:
+    //MediaDB<std::string>* test_list;
+	CloudList<QString>* cltest;
+    bb::cascades::ListView* list;
+    bb::cascades::TextField* txt;
+    bb::cascades::QListDataModel<QVariantMap>* data_list;
     QTranslator* m_pTranslator;
     bb::cascades::LocaleHandler* m_pLocaleHandler;
 };
