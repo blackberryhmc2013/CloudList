@@ -4,6 +4,9 @@ CloudList Documentation
 CloudList provides the simplicity of a `Qlist` like interface while interfacing with backend cloud services for data synchronization.
 Instantiations of CloudList connected to the internet with the same list identifier will attempt to synchronize their contents.
 
+The `ExampleUse` branch is a simple project that uses CloudList to display a shared list.  The `master` branch serves as a template
+for future projects.
+
 CloudList depends on the cloudbase.io BlackBerry library licensed under Apache 2.0, and YAJL under the ISC license.
 
 Pre-installation
